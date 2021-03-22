@@ -2,7 +2,24 @@
 ; The low-level monitor
 
 monitor_start:
-    call monitor_init
+        call monitor_init
+
+        ;; Look for "START.CFG"
+        ld hl, START_CFG_NAME
+        call copy_filename_to_buffer
+        ld de, config_file_loc
+        call load_bin_file
+        jp nz, monitor_restart      ; failed to load
+
+        ;; Load the first character of the file and store in our input buffer.
+        ld a, (hl)
+        ld hl, input_character
+        ld (hl), a
+        jp monitor_restart
+
+        ;; storage for one byte, the first character in the config-file
+input_character:
+        db 0
 
 monitor_restart:
 	call clear_screen
@@ -12,8 +29,20 @@ monitor_loop:
 	ld a, '>'
 	call print_a
 monitor_loop1:
+
+        ;; if "input_character" contains a non-zero value it was read
+        ;; from /CPM/START.CFG, and should be chosen in preference to
+        ;; the input from the serial
+        ld hl, input_character
+        ld a, (hl)
+        cp 0
+        jr z, read_input
+        ld (hl), 0
+        jp test_input
+read_input:
 	call char_in			; get a char from keyboard
-	cp 0					; If it's null, ignore it
+test_input:
+        cp 0					; If it's null, ignore it
 	jr z,monitor_loop1
 	cp '0'					; '0' = go to page 0
 	jr nz,not0
@@ -95,7 +124,7 @@ not6:
 not_hash:
 	cp 'c'					; CP/M
 	jr nz, not_c
-    call message 
+    call message
     db 'Starting CP/M... Make sure you have the "ROM Select" jumper set to "switched".',13,10,0
     jp start_cpm
 
@@ -153,7 +182,7 @@ monitor_init:
     ; Four flashes on the USER (blue) LED and disk (yellow) LED
     ld b, 4
 monitor_init1:
-    push bc    
+    push bc
 	call user_off
 	call disk_on
 	call medium_pause
@@ -191,25 +220,25 @@ show_memory_map:
 	call newline
 	ld de,0
 	ld b,64
-	
+
 map_loop:
 	push bc
-	
+
 	ld a,(de)			; get initial value
 	ld b,a
-	
+
 	ld a,0
 	ld (de),a			; see if a 0 stores
 	ld a,(de)
 	cp 0
 	jr nz,rom_location
-	
+
 	ld a,255
 	ld (de),a			; see if a 255 stores
 	ld a,(de)
 	cp 255
 	jr nz,rom_location
-	
+
 ram_location:
 	call message
 	db ' ',0
@@ -218,10 +247,10 @@ rom_location:
 	call message
 	db 27,'[41m','R',27,'[0m',0
 shown_location:
-	
+
 	ld a,b				; restore initial value
 	ld (de),a
-	
+
 	pop bc
 	ld hl, 1024
 	add hl,de
@@ -262,7 +291,7 @@ ram_loop:
 	ret
 
 	db 'DANGER ENDS '
-	
+
 ; -------------------------------------------------------------------------------------------------
 goto_page_0:
 	ld a, 0
@@ -290,7 +319,7 @@ burn_in:
 	; Draw empty box
 
 	ld a, 1
-	ld (burn_y), a				
+	ld (burn_y), a
 draw_loop_y:
 	call space
 	ld b, 35
@@ -310,10 +339,10 @@ draw_loop_x:
 	; Now main burn in loop
 
 	ld a, 2
-	ld (burn_y), a				
+	ld (burn_y), a
 burn_in_loop_y:
 	ld a, 2
-	ld (burn_x), a				
+	ld (burn_x), a
 burn_in_loop_x:
 	call one_minute_burn_in
 	ld a, (burn_x)
@@ -333,7 +362,7 @@ burn_in_loop_x:
 burn_in_wait:
 	call char_in			; get a char from keyboard
 	cp 0					; If it's null, ignore it
-	jr z,burn_in_wait	
+	jr z,burn_in_wait
 	ret
 
 one_minute_burn_in:
@@ -435,7 +464,7 @@ burn_in_read_file:
 	ld a, GET_STATUS
 	call send_command_byte
 	call read_data_byte
-	ld hl, burn_in_dump_area                       
+	ld hl, burn_in_dump_area
 burn_in_load_loop1:
 	cp USB_INT_DISK_READ
 	jr nz, burn_in_load_finished
@@ -463,7 +492,7 @@ burn_in_load_finished:
 	ld de, config_file_loc
 	ld hl, burn_in_dump_area
 	ld b, 10
-burn_in_compare_loop:	
+burn_in_compare_loop:
 	ld a, (de)
 	cp (hl)
 	jr nz, burn_in_compare_failed
@@ -486,11 +515,11 @@ burn_in_compare_failed:
 	ld hl, burn_in_dump_area
 	call show_string_at_hl
 	call newline
-	
+
 	halt
 
 burn_in_erase_file:
-	; Try to open the test file	
+	; Try to open the test file
 	call close_file
 	ld hl, ROOT_NAME
 	call open_file
@@ -521,7 +550,7 @@ burn_in_write_file:
 	call open_file
 	ld de, BURN_IN_NAME
 	call create_file
-	jr z, burnin_create_ok 
+	jr z, burnin_create_ok
 	call message
 	db 'ERROR creating burn-in file.',13,10,0
 	halt
@@ -597,11 +626,11 @@ include "test_uart.asm"
 
 the_end:
 	db 'A message at the end ****************',0
-	
+
 ; ---------------------------------------------------------
 ; These are variables so need to be in RAM.
 ; Unfortunately I am dumb and initially put them in ROM.
-; I have learned my lesson!	
+; I have learned my lesson!
 
 ;store_hl		equ	60000					; Temporary store for hl
 ;store_de 		equ 60002					; Temporary store for de

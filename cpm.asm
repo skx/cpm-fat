@@ -41,7 +41,7 @@ int:
 	ei
 	reti
 
-; NMI routine	
+; NMI routine
 	org $0066
 nmi:
 	ex af, af'
@@ -81,7 +81,7 @@ skip_over_int_and_nmi:
     call get_module_version
 
     ; Now read the baud rate configuration from uart.cfg
-    ld a, $FF 
+    ld a, $FF
     ld (baud_rate_divisor), a           ; Reset the two UART parameters
     ld (flow_control_value), a
     ld hl, UART_CFG_NAME
@@ -102,14 +102,14 @@ skip_over_int_and_nmi:
     db 'Configuring UART to settings in UART.CFG',13,10,0
 
     push bc
-    call message 
+    call message
     db 'BAUD ',0
     ld a, b
     call show_a_as_hex
     pop bc
 
     push bc
-    call message 
+    call message
     db ', FLOW ',0
     ld a, c
     call show_a_as_hex
@@ -143,7 +143,7 @@ start_cpm:
     call load_config_file
     ; Parse it to get out the locations
     call parse_cpm_config_file
-    call show_config    
+    call show_config
     call validate_config
 
     ; Load CORE.BIN into its proper location
@@ -186,7 +186,7 @@ load_config_file:
     ; Read it into an area of memory starting at config_file_loc
     ; and puts \0 at the end so we can spot the end of the file later
     call copy_filename_to_buffer
-    ld de, config_file_loc             
+    ld de, config_file_loc
     call load_bin_file                      ; hl comes back with end location of file. Z set if success.
     jp nz, load_config_file_error
     ld (hl), 0
@@ -637,7 +637,7 @@ is_this_line_the_ccp_name:
 is_this_line_NO:
     pop hl
     or 1                            ; clear zero flag for failure
-    ret    
+    ret
 
 has_file_ended:
     ; The file has ended if the next char is a \0
@@ -648,11 +648,11 @@ has_file_ended:
 get_cfg_char:
     ; Gets A from the next location in the config file, pointed to by HL.
     ; Increases hl so we skip over the char.
-    ; If the char is a \0 then we are at the end of the file, so return \0 and don't increase hl 
+    ; If the char is a \0 then we are at the end of the file, so return \0 and don't increase hl
     ld a, (hl)
     cp 0                            ; Have we found the end of the file?
     ret z                           ; and return
-get_cfg_char1:    
+get_cfg_char1:
     inc hl
     cp a                            ; Set zero flag for success
     ret
@@ -757,6 +757,8 @@ CPM_CFG_NAME:
     db 'CPM.CFG',0
 UART_CFG_NAME:
     db 'UART.CFG',0
+START_CFG_NAME:
+    db 'START.CFG',0
 
 
 first_eight_bytes:
