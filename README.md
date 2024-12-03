@@ -26,6 +26,15 @@ For more details of the board please see the official homepage:
 * You can also see various videos on youtube:
   * [Z80 Playground Playlist](https://www.youtube.com/playlist?list=PL3arA6T9kycptsudBx3MyLbHCOjdoBhO6)
 
+As there are no more boards available, and the site above has gone offline, this is essentially orphaned.
+
+**However** if you have an interest in CP/M and Z80-retro magic you might enjoy these two repositories of mine:
+
+* CP/M Emulator, written in golang:
+  * https://github.com/skx/cpmulator
+* CP/M Binary Collection, a curated list of "important" binaries for CP/M:
+  * https://github.com/skx/cpm-dist/
+
 
 ## Contents
 
